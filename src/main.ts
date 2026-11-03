@@ -25,7 +25,6 @@ interface SceneObject {
 
 type FF = ReturnType<typeof createFixedFunction>;
 
-const ROTATION_SPEED = 0.8; 
 const MAX_DT = 0.1; // seconds
 
 // Step 1. Get the WebGL2 context.
@@ -133,7 +132,7 @@ function processInput(): void {
 
 // Loop phase 2. 
 function update(dt: number): void {
-  if (state.rotating) state.angle += ROTATION_SPEED * dt; // paused: the angle keeps its value
+  // paused: the angle keeps its value
 }
 
 // Loop phase 3. Draw the current state. render reads the state and never changes it.
@@ -141,12 +140,9 @@ function update(dt: number): void {
 // uniforms and keeps render simple. Exercise: set the material only when colorIndex changes.
 const model = mat4.create();
 const normalMatrix = mat3.create();
-const groundModel = mat4.create();
-
 
 function render(gl: WebGL2RenderingContext, ff: FF, objects: SceneObject[]): void {
   mat4.identity(model);
-  mat4.identity(groundModel);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   for (const object of objects) {
@@ -180,7 +176,7 @@ function run(canvas: HTMLCanvasElement): void {
   {
     vao: groundVAO,
     indexCount: GROUND_INDICES.length,
-    modelMatrix: groundModel,
+    modelMatrix: model,
     color: COLORS[0] // Color uniforme para el suelo
   },
   // 2. Torreta (Cubo principal)
