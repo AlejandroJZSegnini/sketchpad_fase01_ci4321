@@ -24,7 +24,11 @@ export const GROUND_INDICES = new Uint16Array([
 /** Cube colors, RGBA. Space cycles through them in this order. */
 export const COLORS: readonly (readonly [number, number, number, number])[] = [
   [0.55, 0.37, 0.22, 1.0], // ground color
-  [0, 0, 0.01, 0.01], // turret color (dark blue)
+  [0.01, 0.01, 0.02, 0.1], // turret color (dark blue)
+  [1.0, 0.4, 0.1, 1.0], // orange color
+  [0.08, 0.35, 0.18, 1.0], // dark green = off
+  [0.40, 0.85, 0.45, 1.0], // light green = on
+  [0, 0, 0, 1], // black
 ];
 
 // 24 vertices (4 per face), not 8 corners. A corner is shared by 3 faces, but a vertex holds
