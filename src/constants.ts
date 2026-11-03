@@ -1,36 +1,103 @@
 // Scene constants: geometry, colors and canvas settings. main.ts holds the WebGL code and the game loop.
-
-/** Background color #1b1e2b as linear floats in [0, 1]. */
+ 
+/** Background color sky blue #87ceeb as floats in [0, 1]. */
 export const CLEAR_COLOR: readonly [number, number, number, number] = [0x87 / 255, 0xce / 255, 0xeb / 255, 1];
-
+ 
 /** Drawing buffer size in pixels, 4:3. CSS scales the canvas to fit the window; the buffer stays fixed. */
 export const CANVAS_WIDTH = 1024;
 export const CANVAS_HEIGHT = 768;
-
+ 
+// ---------------------------------------------------------------------------
+// Ground
+// ---------------------------------------------------------------------------
+ 
+/** Altura (y) del suelo. GROUND_VERTICES y la base de la torreta usan este mismo valor. */
+export const GROUND_Y = -1.0;
+ 
 /** Interleaved ground vertex data: x, y, z, nx, ny, nz per vertex. */
 export const GROUND_VERTICES = new Float32Array([
-  // x,     y,     z,     nx, ny, nz
-  -10.0, -1.0, -10.0,    0.0, 1.0, 0.0, // Vértice 0: Izquierda-Fondo
-   10.0, -1.0, -10.0,    0.0, 1.0, 0.0, // Vértice 1: Derecha-Fondo
-   10.0, -1.0,  10.0,    0.0, 1.0, 0.0, // Vértice 2: Derecha-Frente
-  -10.0, -1.0,  10.0,    0.0, 1.0, 0.0  // Vértice 3: Izquierda-Frente
+  // x,     y,        z,     nx, ny, nz
+  -10.0, GROUND_Y, -10.0,    0.0, 1.0, 0.0, // Vértice 0: Izquierda-Fondo
+   10.0, GROUND_Y, -10.0,    0.0, 1.0, 0.0, // Vértice 1: Derecha-Fondo
+   10.0, GROUND_Y,  10.0,    0.0, 1.0, 0.0, // Vértice 2: Derecha-Frente
+  -10.0, GROUND_Y,  10.0,    0.0, 1.0, 0.0  // Vértice 3: Izquierda-Frente
 ]);
-
+ 
 export const GROUND_INDICES = new Uint16Array([
   2, 1, 0,  // Primer triángulo invertido
   3, 2, 0   // Segundo triángulo invertido
 ]);
-
-/** Cube colors, RGBA. Space cycles through them in this order. */
+ 
+// ---------------------------------------------------------------------------
+// Colors
+// ---------------------------------------------------------------------------
+ 
+/** Material colors, RGBA. Se indexan con COLOR (más abajo), no con números sueltos. */
 export const COLORS: readonly (readonly [number, number, number, number])[] = [
-  [0.55, 0.37, 0.22, 1.0], // ground color
-  [0.01, 0.01, 0.02, 0.1], // turret color (dark blue)
-  [1.0, 0.4, 0.1, 1.0], // orange color
+  [0.55, 0.37, 0.22, 1.0], // ground color (marrón)
+  [0.28, 0.28, 0.31, 1.0], // turret color (gris oscuro)
+  [1.0, 0.4, 0.1, 1.0],    // orange color (objetivos)
   [0.08, 0.35, 0.18, 1.0], // dark green = off
   [0.40, 0.85, 0.45, 1.0], // light green = on
-  [0, 0, 0, 1], // black
+  [0, 0, 0, 1],            // black (proyectil)
 ];
-
+ 
+/** Nombres de los índices de COLORS, para escribir COLORS[COLOR.TURRET] en vez de COLORS[1]. */
+export const COLOR = {
+  GROUND: 0,
+  TURRET: 1,
+  TARGET: 2,
+  BAR_OFF: 3,
+  BAR_ON: 4,
+  BULLET: 5,
+} as const;
+ 
+// ---------------------------------------------------------------------------
+// Turret: medidas en unidades de mundo. La torreta se arma en el origen local (centro de la base,
+// sobre el suelo) y main.ts la traslada a (turretX, GROUND_Y, TURRET_Z).
+// ---------------------------------------------------------------------------
+ 
+/** Posición fija de la torreta en z. Solo se mueve en x. */
+export const TURRET_Z = 1.0;
+/** La torreta se mueve en x dentro de [-TURRET_X_LIMIT, TURRET_X_LIMIT]. Con la cámara actual todo ese recorrido es visible. */
+export const TURRET_X_LIMIT = 2.0;
+/** Velocidad lateral en unidades por segundo. */
+export const TURRET_SPEED = 2.0;
+ 
+/** Cuerpo de la torreta (cubo escalado): ancho, alto, profundo. */
+export const BODY_SIZE: readonly [number, number, number] = [1.0, 0.4, 0.8];
+/** Altura del pivote del cañón sobre el suelo: un poco por encima de la tapa del cuerpo. */
+export const PIVOT_HEIGHT = BODY_SIZE[1] + 0.05;
+/** Cúpula de la torreta (esfera centrada en el pivote). */
+export const DOME_RADIUS = 0.3;
+/** Tubo del cañón (cilindro que sale del pivote). */
+export const TUBE_RADIUS = 0.08;
+export const TUBE_LENGTH = 1.1;
+/** Proyectil. En reposo se apoya en la boca del tubo. */
+export const BULLET_RADIUS = 0.12;
+ 
+/** Elevación del tubo, en grados medidos desde la horizontal. */
+export const ELEVATION_MIN_DEG = 5;
+export const ELEVATION_MAX_DEG = 90;
+export const ELEVATION_INITIAL_DEG = 45;
+/** Velocidad de cambio de elevación, grados por segundo. */
+export const ELEVATION_SPEED_DEG = 45;
+ 
+// ---------------------------------------------------------------------------
+// Targets (se recolocan y calibran en la fase de disparo)
+// ---------------------------------------------------------------------------
+ 
+export const TARGET_RADIUS = 0.5;
+export const TARGET_POSITIONS: readonly (readonly [number, number, number])[] = [
+  [-3.0, 1.0, -4.0], // izquierdo
+  [0.0, 2.0, -6.0],  // central
+  [3.0, 1.0, -4.0],  // derecho
+];
+ 
+// ---------------------------------------------------------------------------
+// Cube mesh
+// ---------------------------------------------------------------------------
+ 
 // 24 vertices (4 per face), not 8 corners. A corner is shared by 3 faces, but a vertex holds
 // only one normal. Each face needs its own normal for flat lighting, so each face gets its own 4 vertices.
 /** Interleaved vertex data: x, y, z, nx, ny, nz per vertex. Half-size 0.5, counter-clockwise seen from outside. */
@@ -67,7 +134,7 @@ export const CUBE_VERTICES = new Float32Array([
    0.5, -0.5,  0.5,   0, -1,  0,
   -0.5, -0.5,  0.5,   0, -1,  0,
 ]);
-
+ 
 /** Two triangles per face, 36 indices. Each face: (0, 1, 2) and (0, 2, 3), both counter-clockwise. */
 export const CUBE_INDICES = new Uint16Array([
    0,  1,  2,   0,  2,  3, // +Z
@@ -77,6 +144,6 @@ export const CUBE_INDICES = new Uint16Array([
   16, 17, 18,  16, 18, 19, // +Y
   20, 21, 22,  20, 22, 23, // -Y
 ]);
-
+ 
 export const STRIDE_BYTES = 6 * 4; // 4 bytes per float (Float32)
 export const NORMAL_OFFSET_BYTES = 3 * 4;
