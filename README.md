@@ -2,6 +2,11 @@
 
 A turret that moves from left to right that shoots cannonballs against floating targets. You can arc the shoot and change the potency.
 
+## Team Sketchpad
+
+Angel Rodriguez
+Alejandro Zambrano
+
 ## Requirements
 
 - Node.js 18 or later (tested with Node 24)
