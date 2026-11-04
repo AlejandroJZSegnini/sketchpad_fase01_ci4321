@@ -26,6 +26,8 @@ import {
   GROUND_Y,
   NORMAL_OFFSET_BYTES,
   PIVOT_HEIGHT,
+  PREVIEW_RADIUS,
+  PREVIEW_POINTS_COUNT,
   SIM_STEP,
   STRIDE_BYTES,
   TARGET_POSITIONS,
@@ -38,7 +40,7 @@ import {
 } from './constants';
 import { createSphereData } from './spheres';
 import { createCylinderData } from './cylinders';
-import { createFlight, flightPosition, hitsTarget, touchesGround } from './physics';
+import { createFlight, flightPosition, hitsTarget, touchesGround, getTrajectoryPoints } from './physics';
 import type { Flight, Vec3 } from './physics';
  
 // Crear una interfaz para representar un objeto de la escena
@@ -63,6 +65,7 @@ interface TurretParts {
 interface Scene {
   turret: TurretParts;
   targets: SceneObject[];
+  previewDots: SceneObject[];
 }
  
 type FF = ReturnType<typeof createFixedFunction>;
@@ -320,6 +323,26 @@ function updateSceneTransforms(scene: Scene): void {
   }
   mat4.scale(parts.bullet.modelMatrix, parts.bullet.modelMatrix, [BULLET_RADIUS, BULLET_RADIUS, BULLET_RADIUS]);
  
+// --- TRAYECTORIA (PREVIEW) ---
+  if (scene.previewDots) {
+    if (state.flight === null) {
+      const points = getTrajectoryPoints(state.turretX, state.elevationDeg, state.powerLevel, scene.previewDots.length);
+      scene.previewDots.forEach((dot, i) => {
+        if (i < points.length) {
+          dot.visible = true;
+          mat4.fromTranslation(dot.modelMatrix, points[i]);
+          mat4.scale(dot.modelMatrix, dot.modelMatrix, [PREVIEW_RADIUS, PREVIEW_RADIUS, PREVIEW_RADIUS]);
+        } else {
+          dot.visible = false;
+        }
+      });
+    } else {
+      scene.previewDots.forEach((dot) => {
+        dot.visible = false;
+      });
+    }
+  }
+
   // Un objetivo alcanzado deja de dibujarse (render lo salta).
   scene.targets.forEach((target, i) => {
     target.visible = state.targetsAlive[i];
@@ -421,7 +444,12 @@ function run(canvas: HTMLCanvasElement): void {
     // Tres barras sin iluminación; update() decide cuáles se ven encendidas (verde claro) o apagadas (verde oscuro).
     bars: Array.from({ length: BAR_COUNT }, () => createObject(cubeVAO, CUBE_INDICES.length, COLOR.BAR_OFF, true)),
   };
- 
+
+   // Crear una serie de esferas pequeñas para la trayectoria
+  const previewDots = Array.from({ length: PREVIEW_POINTS_COUNT }, () => 
+  createObject(sphereVAO, sphereCount, COLOR.PREVIEW, false)
+  );
+
   // Objetivos: fijos, así que su matriz se calcula una sola vez (update() solo cambia su visibilidad).
   const targets = TARGET_POSITIONS.map((position) => {
     const target = createObject(sphereVAO, sphereCount, COLOR.TARGET);
@@ -430,7 +458,7 @@ function run(canvas: HTMLCanvasElement): void {
     return target;
   });
  
-  const scene: Scene = { turret, targets };
+  const scene: Scene = { turret, targets, previewDots };
   const sceneObjects: SceneObject[] = [
     ground,
     turret.body,
@@ -439,6 +467,7 @@ function run(canvas: HTMLCanvasElement): void {
     turret.bullet,
     ...turret.bars,
     ...targets,
+    ...previewDots,
   ];
  
   let last: number | null = null; // set by the first frame, so dt starts at 0

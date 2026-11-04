@@ -40,6 +40,7 @@ export const COLORS: readonly (readonly [number, number, number, number])[] = [
   [0.08, 0.35, 0.18, 1.0], // dark green = off
   [0.40, 0.85, 0.45, 1.0], // light green = on
   [0, 0, 0, 1],            // black (proyectil)
+  [0.85, 0.85, 0.85, 1.0], // preview trajectory color (gris claro)
 ];
 
 /** Nombres de los índices de COLORS, para escribir COLORS[COLOR.TURRET] en vez de COLORS[1]. */
@@ -50,6 +51,7 @@ export const COLOR = {
   BAR_OFF: 3,
   BAR_ON: 4,
   BULLET: 5,
+  PREVIEW: 6
 } as const;
 
 // ---------------------------------------------------------------------------
@@ -101,6 +103,10 @@ export const ELEVATION_SPEED_DEG = 45;
 export const GRAVITY = 5.0;
 /** Rapidez de salida de la bala para los niveles de fuerza 1, 2 y 3. */
 export const LAUNCH_SPEEDS: readonly [number, number, number] = [5.0, 6.8, 8.9];
+/** Número de esferas que formarán la línea punteada */
+export const PREVIEW_POINTS_COUNT = 30;
+/** Radio pequeño para cada punto de la trayectoria */
+export const PREVIEW_RADIUS = 0.03;
 /** Paso fijo de la simulación del proyectil. 1/120 s con rapidez máxima 8.9 mueve la bala menos de 0.08 por paso (el objetivo mide 1.2 de diámetro), así que no lo atraviesa. */
 export const SIM_STEP = 1 / 120;
 

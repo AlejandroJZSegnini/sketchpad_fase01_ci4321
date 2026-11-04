@@ -10,6 +10,7 @@ import {
   GROUND_Y,
   LAUNCH_SPEEDS,
   PIVOT_HEIGHT,
+  PREVIEW_POINTS_COUNT,
   TARGET_POSITIONS,
   TARGET_RADIUS,
   TUBE_LENGTH,
@@ -70,4 +71,45 @@ export function hitsTarget(position: Vec3, targetIndex: number): boolean {
 /** La bala toca el suelo cuando su centro baja a un radio de altura sobre él. */
 export function touchesGround(position: Vec3): boolean {
   return position[1] <= GROUND_Y + BULLET_RADIUS;
+}
+
+/** Calcula los puntos de la trayectoria en el espacio 3D para la vista previa del disparo. */
+export function getTrajectoryPoints(
+  turretX: number,
+  elevationDeg: number,
+  powerLevel: 1 | 2 | 3,
+  count: number = PREVIEW_POINTS_COUNT
+): Vec3[] {
+  const origin = restPosition(turretX, elevationDeg);
+  const e = elevationDeg * DEG_TO_RAD;
+  const speed = LAUNCH_SPEEDS[powerLevel - 1];
+  const velocity: Vec3 = [0, speed * Math.sin(e), -speed * Math.cos(e)];
+
+  // Ecuación cuadrática para hallar el tiempo total de vuelo hasta el suelo (y = GROUND_Y)
+  const a = 0.5 * GRAVITY;
+  const b = -velocity[1];
+  const discriminant = b * b - 4 * a * (origin[1] - GROUND_Y);
+  
+  let totalTime = 1.5; // Tiempo máximo por defecto si no intersecta
+  if (discriminant >= 0) {
+    const t1 = (-b - Math.sqrt(discriminant)) / (2 * a);
+    const t2 = (-b + Math.sqrt(discriminant)) / (2 * a);
+    totalTime = Math.max(t1, t2);
+    if (totalTime < 0) totalTime = 1.5;
+  }
+
+  const points: Vec3[] = [];
+  for (let i = 0; i < count; i++) {
+    // Empezamos desde i + 1 para que el primer punto no se encime exactamente en la bala en reposo
+    const t = ((i + 1) / count) * totalTime;
+    const pt: Vec3 = [
+      origin[0] + velocity[0] * t,
+      origin[1] + velocity[1] * t - 0.5 * GRAVITY * t * t,
+      origin[2] + velocity[2] * t,
+    ];
+    // Si la parábola cruza el suelo, detenemos la generación de puntos
+    if (pt[1] < GROUND_Y) break;
+    points.push(pt);
+  }
+  return points;
 }
