@@ -35,7 +35,7 @@ export const GROUND_INDICES = new Uint16Array([
 /** Material colors, RGBA. Se indexan con COLOR (más abajo), no con números sueltos. */
 export const COLORS: readonly (readonly [number, number, number, number])[] = [
   [0.55, 0.37, 0.22, 1.0], // ground color (marrón)
-  [0.28, 0.28, 0.31, 1.0], // turret color (gris oscuro)
+  [0.19, 0.19, 0.21, 1.0], // turret color (gris oscuro)
   [1.0, 0.4, 0.1, 1.0],    // orange color (objetivos)
   [0.08, 0.35, 0.18, 1.0], // dark green = off
   [0.40, 0.85, 0.45, 1.0], // light green = on
@@ -117,9 +117,9 @@ export const TARGET_RADIUS = 0.6;
  *   y es el único que llega al derecho.
  */
 export const TARGET_POSITIONS: readonly (readonly [number, number, number])[] = [
-  [-1.5, 0.3, -3.0], // izquierdo: cerca y bajo
-  [0.0, 1.4, -5.5],  // central: distancia y altura medias
-  [1.5, 2.4, -9.0],  // derecho: lejos y alto
+  [-2.0, 0.3, -3.0], // izquierdo: cerca y bajo
+  [0.0, 2.4, -5.5],  // central: distancia y altura alta
+  [2.0, 0.9, -11.0],  // derecho: lejos y bajo, solo nivel 3 lo alcanza
 ];
 
 // ---------------------------------------------------------------------------

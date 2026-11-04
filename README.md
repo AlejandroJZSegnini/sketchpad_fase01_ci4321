@@ -1,6 +1,6 @@
-# Rotating Cube: FixedFunction and a game loop
+# Turret Game: FixedFunction and a game loop
 
-A yellow cube rotates on the Y axis. One directional light shines on it. The example uses the FixedFunction (FF) module, so no shader code appears in the example. The code shows the game loop that drives the animation.
+A turret that moves from left to right that shoots cannonballs against floating targets. You can arc the shoot and change the potency.
 
 ## Requirements
 
@@ -26,9 +26,12 @@ A yellow cube rotates on the Y axis. One directional light shines on it. The exa
 
 ## Use
 
-- Press `Space` to change the cube color. The color cycles yellow → cyan → magenta → yellow.
-- Press `R` to stop or restart the rotation.
-- Holding a key counts as one press. Key auto-repeat is ignored.
+- Press `Left Arrow` and `Right Arrow` to move from side to side.
+- Press `Down Arrow` and `Up Arrow` to  angle the shot.
+- Press `1` through `3` to change the force of the shot, lowest to highest.
+- Press `F` to also change the force of the shot, ciclically.
+- Press `Space` to shoot the cannonball.
+- Press `R` to reset the game.
 
 ## Game loop
 
@@ -52,7 +55,10 @@ Each frame runs three steps in this order:
 ```
 index.html                 page markup
 src/main.ts                WebGL setup, the game loop, and the canvas
-src/constants.ts           geometry, colors, and clear color (#1b1e2b)
+src/spheres.ts             algorithm to draw spheres iterating
+src/cylinders.ts           algorithm to draw cilynders iterating
+src/physics.ts             functions to calculate colitions and parabolic movement
+src/constants.ts           other geometry, colors, clear color, initial positions, angles
 src/vendor/ff/             FF v1.0 (read only; do not edit)
 ```
 
