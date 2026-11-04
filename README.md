@@ -35,11 +35,13 @@ A turret that moves from left to right that shoots cannonballs against floating 
 
 ## Game loop
 
-Each frame runs three steps in this order:
+Each frame runs five steps in this order:
 
 1. `processInput` handles the `Space` and `R` presses recorded since the last frame.
-2. `update(dt)` changes the rotation angle.
-3. `render` draws the scene.
+2. `update(dt, scene)` applies inputs every SIM_STEP, changing the scene dinamically.
+3. `stepProjectile` simulates the flight of the projectile. Is accumulated in the SIM_STEP of last step.
+4. `updateSceneTranform` applies the transformation to each object in the scene.
+5. `render` draws the scene.
 
 `dt` is the time since the last frame, in seconds. The value is clamped to 0.1 s. A hidden tab does not make the cube jump when the tab becomes visible again. The rotation speed is in radians per second. The cube turns at the same speed on a 60 Hz display and on a 120 Hz display.
 
