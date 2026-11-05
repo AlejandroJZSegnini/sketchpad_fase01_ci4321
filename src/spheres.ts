@@ -33,7 +33,6 @@ export function createSphereData(radius: number, rings: number, sectors: number)
       const first = r * (sectors + 1) + s;
       const second = first + sectors + 1;
  
-      // Antihorario visto desde afuera (el orden original era horario y CULL_FACE lo descartaba).
       indices.push(first, first + 1, second);
       indices.push(second, first + 1, second + 1);
     }

@@ -323,7 +323,7 @@ function updateSceneTransforms(scene: Scene): void {
   }
   mat4.scale(parts.bullet.modelMatrix, parts.bullet.modelMatrix, [BULLET_RADIUS, BULLET_RADIUS, BULLET_RADIUS]);
  
-// --- TRAYECTORIA (PREVIEW) ---
+// --- TRAYECTORIA (PREVIEW DOTS) ---
   if (scene.previewDots) {
     if (state.flight === null) {
       const points = getTrajectoryPoints(state.turretX, state.elevationDeg, state.powerLevel, scene.previewDots.length);
