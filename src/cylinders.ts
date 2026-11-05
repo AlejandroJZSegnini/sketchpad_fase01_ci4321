@@ -1,17 +1,11 @@
-// Genera un cilindro cerrado (pared lateral y dos tapas) con posiciones y normales interleaveadas:
-// x, y, z, nx, ny, nz.
-//
-// Medidas unitarias: radio 1, eje a lo largo de -Z. La base está en z = 0 y la boca en z = -1.
-// Se dimensiona con scale [radio, radio, largo] en la matriz de modelo. Eje en -Z para que
-// rotateX(elevación) lo incline hacia arriba sin más ajustes.
-//
-// Todos los triángulos quedan en sentido antihorario visto desde afuera (requisito de CULL_FACE).
+// Genera un cilindro cerrado 
+// Todos los triángulos quedan en sentido antihorario visto desde afuera. 
 export function createCylinderData(segments: number) {
   const vertices: number[] = [];
   const indices: number[] = [];
-  const ring = segments + 1; // vértices por anillo (el último repite al primero para cerrar la costura)
+  const ring = segments + 1; // vértices por anillo 
  
-  // Pared lateral: anillo en z = 0 y anillo en z = -1, con la normal radial (nx, ny, 0).
+  // Pared lateral
   for (const z of [0, -1]) {
     for (let i = 0; i <= segments; i++) {
       const a = (i / segments) * 2 * Math.PI;
@@ -25,8 +19,7 @@ export function createCylinderData(segments: number) {
     indices.push(i, ring + i + 1, i + 1);
   }
  
-  // Tapas: un vértice central y un anillo propio, con la normal de la tapa (no la radial).
-  // nz = +1 mira hacia +Z (la base); nz = -1 mira hacia -Z (la boca).
+  // Tapas: un vértice central y un anillo propio, con la normal de la tapa 
   const addCap = (z: number, nz: number): void => {
     const center = vertices.length / 6;
     vertices.push(0, 0, z, 0, 0, nz);
