@@ -43,7 +43,7 @@ export const COLORS: readonly (readonly [number, number, number, number])[] = [
   [0.85, 0.85, 0.85, 1.0], // preview trajectory color (gris claro)
 ];
 
-/** Nombres de los índices de COLORS, para escribir COLORS[COLOR.TURRET] en vez de COLORS[1]. */
+/** Nombres de los índices de COLORS, para escribir COLORS[COLOR.TURRET]. */
 export const COLOR = {
   GROUND: 0,
   TURRET: 1,
@@ -61,27 +61,25 @@ export const COLOR = {
 
 /** Posición fija de la torreta en z. Solo se mueve en x. */
 export const TURRET_Z = 1.0;
-/** La torreta se mueve en x dentro de [-TURRET_X_LIMIT, TURRET_X_LIMIT]. Con la cámara actual todo ese recorrido es visible. */
+/** La torreta se mueve en x dentro de [-TURRET_X_LIMIT, TURRET_X_LIMIT]. */
 export const TURRET_X_LIMIT = 2.0;
 /** Velocidad lateral en unidades por segundo. */
 export const TURRET_SPEED = 2.0;
 
-/** Cuerpo de la torreta (cubo escalado): ancho, alto, profundo. */
+/** Cuerpo de la torreta: ancho, alto, profundo. */
 export const BODY_SIZE: readonly [number, number, number] = [1.0, 0.4, 0.8];
 /** Altura del pivote del cañón sobre el suelo: un poco por encima de la tapa del cuerpo. */
 export const PIVOT_HEIGHT = BODY_SIZE[1] + 0.05;
-/** Cúpula de la torreta (esfera centrada en el pivote). */
+/** Cúpula de la torreta. */
 export const DOME_RADIUS = 0.3;
-/** Tubo del cañón (cilindro que sale del pivote). */
+/** Tubo del cañón. */
 export const TUBE_RADIUS = 0.08;
 export const TUBE_LENGTH = 1.1;
-/** Proyectil. En reposo se apoya en la boca del tubo. */
+/** Proyectil. */
 export const BULLET_RADIUS = 0.12;
 
-/**
- * Indicador de fuerza: 3 barras apiladas (paralelepípedos delgados) sobre la cara del cuerpo que mira a la cámara (+Z).
- * BAR_SIZE: ancho, alto, grosor. BAR_GAP: separación entre barras. La barra inferior es la número 0.
- */
+
+//Indicador de fuerza:
 export const BAR_COUNT = 3;
 export const BAR_SIZE: readonly [number, number, number] = [0.5, 0.075, 0.03];
 export const BAR_GAP = 0.03;
@@ -107,7 +105,7 @@ export const LAUNCH_SPEEDS: readonly [number, number, number] = [5.0, 6.8, 8.9];
 export const PREVIEW_POINTS_COUNT = 30;
 /** Radio pequeño para cada punto de la trayectoria */
 export const PREVIEW_RADIUS = 0.03;
-/** Paso fijo de la simulación del proyectil. 1/120 s con rapidez máxima 8.9 mueve la bala menos de 0.08 por paso (el objetivo mide 1.2 de diámetro), así que no lo atraviesa. */
+/** Paso fijo de la simulación del proyectil */
 export const SIM_STEP = 1 / 120;
 
 // ---------------------------------------------------------------------------
@@ -116,12 +114,7 @@ export const SIM_STEP = 1 / 120;
 
 /** Con la bala de radio 0.12, el acierto se da a menos de 0.72 entre centros. */
 export const TARGET_RADIUS = 0.6;
-/**
- * Cerca/bajo, medio y lejos/alto, con x distinta para que haya que mover la torreta (su rango es +-2.0).
- * Calibrados con LAUNCH_SPEEDS y GRAVITY:
- *   nivel 1 solo alcanza el izquierdo; nivel 2 alcanza izquierdo y central; nivel 3 alcanza los tres,
- *   y es el único que llega al derecho.
- */
+
 export const TARGET_POSITIONS: readonly (readonly [number, number, number])[] = [
   [-2.0, 0.3, -3.0], // izquierdo: cerca y bajo
   [0.0, 2.4, -5.5],  // central: distancia y altura alta
@@ -133,8 +126,6 @@ export const TARGET_POSITIONS: readonly (readonly [number, number, number])[] = 
 // ---------------------------------------------------------------------------
 
 // 24 vertices (4 per face), not 8 corners. A corner is shared by 3 faces, but a vertex holds
-// only one normal. Each face needs its own normal for flat lighting, so each face gets its own 4 vertices.
-/** Interleaved vertex data: x, y, z, nx, ny, nz per vertex. Half-size 0.5, counter-clockwise seen from outside. */
 export const CUBE_VERTICES = new Float32Array([
   //   x      y      z    nx  ny  nz
   // +Z face (front)

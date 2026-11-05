@@ -1,9 +1,5 @@
-// Física del proyectil: lanzamiento, trayectoria y colisiones. No usa WebGL ni gl-matrix.
-//
-// La trayectoria se calcula con la fórmula exacta (no se acumula velocidad frame a frame):
-//   posición(t) = origen + velocidad * t + 1/2 * gravedad * t^2
-// y main.ts la avanza con pasos de tiempo fijos (SIM_STEP). Así un mismo disparo recorre
-// exactamente los mismos instantes t = k * SIM_STEP a 30, 60 o 144 FPS, y cae en el mismo lugar.
+// Física del proyectil: lanzamiento, trayectoria y colisiones.
+
 import {
   BULLET_RADIUS,
   GRAVITY,
@@ -28,10 +24,7 @@ export interface Flight {
  
 const DEG_TO_RAD = Math.PI / 180;
  
-/**
- * Centro de la bala cuando reposa en la boca del tubo. Es el mismo punto que obtiene main.ts al
- * colgar la bala del pivote (pivote + rotateX(elevación) * (0, 0, -(largo + radio))).
- */
+/** Centro de la bala cuando reposa en la boca del tubo. */
 export function restPosition(turretX: number, elevationDeg: number): Vec3 {
   const e = elevationDeg * DEG_TO_RAD;
   const reach = TUBE_LENGTH + BULLET_RADIUS;
@@ -42,7 +35,7 @@ export function restPosition(turretX: number, elevationDeg: number): Vec3 {
 export function createFlight(turretX: number, elevationDeg: number, powerLevel: 1 | 2 | 3): Flight {
   const e = elevationDeg * DEG_TO_RAD;
   const speed = LAUNCH_SPEEDS[powerLevel - 1];
-  // Dirección del tubo: (0, sin e, -cos e). El cañón no gira sobre sí mismo, así que x no cambia.
+  // Dirección del tubo.
   return {
     origin: restPosition(turretX, elevationDeg),
     velocity: [0, speed * Math.sin(e), -speed * Math.cos(e)],

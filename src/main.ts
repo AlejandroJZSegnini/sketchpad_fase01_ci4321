@@ -1,4 +1,4 @@
-// Juego de torreta: lanzamiento de esferas en 3D, FixedFunction (FF) version.
+// Juego de torreta: lanzamiento de esferas en 3D.
 import './style.css';
 import { mat3, mat4 } from 'gl-matrix';
 import { ATTRIB, createFixedFunction, LIGHTING } from './vendor/ff/ff';
@@ -53,13 +53,13 @@ interface SceneObject {
   unlit: boolean; // true: se dibuja sin iluminación, con color plano (barras del indicador)
 }
  
-// Las piezas de la torreta. Sus matrices (y el color de las barras) se recalculan en cada frame a partir del estado.
+// Las piezas de la torreta.
 interface TurretParts {
-  body: SceneObject;   // cuerpo (cubo aplastado)
-  dome: SceneObject;   // torreta (cúpula esférica)
-  tube: SceneObject;   // cañón (cilindro)
-  bullet: SceneObject; // proyectil: en reposo en la punta del tubo, o en vuelo
-  bars: SceneObject[]; // indicador de fuerza, de abajo hacia arriba
+  body: SceneObject;   // cuerpo 
+  dome: SceneObject;   // torreta 
+  tube: SceneObject;   // cañón 
+  bullet: SceneObject; // proyectil
+  bars: SceneObject[]; // indicador de fuerza
 }
  
 interface Scene {
@@ -77,15 +77,12 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
  
-// Step 1. Get the WebGL2 context.
 function getContext(canvas: HTMLCanvasElement): WebGL2RenderingContext {
   const gl = canvas.getContext('webgl2');
   if (!gl) throw new Error('WebGL2 is not available.');
   return gl;
 }
  
-// Step 2. Shaders and program: FF creates and owns them.
-// Step 3. Vertex specification: copy the vertex and index data to the GPU.
 function createVertexBuffer(gl: WebGL2RenderingContext, data: Float32Array): WebGLBuffer {
   const buffer = gl.createBuffer()!;
   gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -100,8 +97,6 @@ function createIndexBuffer(gl: WebGL2RenderingContext, data: Uint16Array): WebGL
   return buffer;
 }
  
-// Step 4. Describe how the vertex data is laid out, using FF's attribute slots.
-// No ATTRIB.COLOR: lit colors come from the material.
 function createVAO(gl: WebGL2RenderingContext, vertices: WebGLBuffer, indices: WebGLBuffer): WebGLVertexArrayObject {
   const vao = gl.createVertexArray()!;
   gl.bindVertexArray(vao);
@@ -110,30 +105,26 @@ function createVAO(gl: WebGL2RenderingContext, vertices: WebGLBuffer, indices: W
   gl.vertexAttribPointer(ATTRIB.POSITION, 3, gl.FLOAT, false, STRIDE_BYTES, 0);
   gl.enableVertexAttribArray(ATTRIB.NORMAL);
   gl.vertexAttribPointer(ATTRIB.NORMAL, 3, gl.FLOAT, false, STRIDE_BYTES, NORMAL_OFFSET_BYTES);
-  // The VAO remembers the ELEMENT_ARRAY_BUFFER bound while it is bound.
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indices);
   gl.bindVertexArray(null);
   return vao;
 }
  
-// Step 5. Pipeline state: canvas size, viewport, clear color, depth test, face culling.
 function setupState(gl: WebGL2RenderingContext, canvas: HTMLCanvasElement): void {
   canvas.width = CANVAS_WIDTH;
   canvas.height = CANVAS_HEIGHT;
   gl.viewport(0, 0, canvas.width, canvas.height);
   gl.clearColor(...CLEAR_COLOR);
-  gl.enable(gl.DEPTH_TEST); // nearer faces must hide farther ones
-  gl.enable(gl.CULL_FACE); // skip back faces; front faces are counter-clockwise (the default)
+  gl.enable(gl.DEPTH_TEST); 
+  gl.enable(gl.CULL_FACE); 
 }
- 
-// Step 6. Scene: lighting, one directional light, camera.
+
+// Configuración de la escena: iluminación, cámara y proyección.
 function setupScene(ff: FF): void {
   ff.enable(LIGHTING);
-  ff.setGlobalAmbient([0.2, 0.2, 0.2, 1]); // the FF default, set explicitly to make it visible
+  ff.setGlobalAmbient([0.2, 0.2, 0.2, 1]); 
  
-  // The light TRAVELS in direction (-1, -1, -0.5): down, left, slightly away from the camera.
-  // FF's position (w = 0) points TOWARD the light, so the sign flips: (1, 1, 0.5, 0).
-  // Passing the travel direction instead lights the faces that point away from the light.
+  
   ff.setLight(0, { position: [1, 1, 0.5, 0], diffuse: [1, 1, 1, 1] });
   ff.enableLight(0);
  
@@ -146,15 +137,7 @@ function setupScene(ff: FF): void {
   ff.setProjectionMatrix(projection);
 }
  
-// ---------------------------------------------------------------------------
-// Game loop. Every frame does three separate phases:
-//   1. processInput: read what the user did.
-//   2. update(dt): advance the simulation by the elapsed time dt (state and model matrices).
-//   3. render: draw the current state.
-// Keep the phases apart: render never changes the state, and update never calls WebGL.
-// ---------------------------------------------------------------------------
- 
-// Game state: everything the simulation needs, nothing about WebGL.
+// Game state: everything the simulation needs.
 type PowerLevel = 1 | 2 | 3;
 const state = {
   turretX: 0, // posición lateral de la torreta
@@ -173,11 +156,9 @@ function resetGame(): void {
 }
  
 // Input. Dos conjuntos de teclas, indexados por KeyboardEvent.code:
-//   keysDown:    teclas que están presionadas ahora (para movimiento continuo con las flechas).
-//   keysPressed: teclas que se acaban de presionar en este frame (una vez por pulsación: Espacio, R, 1/2/3, F).
 const keysDown = new Set<string>();
 const keysPressed = new Set<string>();
-// Teclas cuyo comportamiento por defecto (scroll de la página) hay que bloquear.
+// Teclas cuyo comportamiento por defecto hay que bloquear.
 const PREVENT_DEFAULT_KEYS = new Set(['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown']);
  
 function setupInput(): void {
@@ -196,7 +177,7 @@ function setupInput(): void {
   });
 }
  
-// Lo que el jugador quiere hacer en este frame, ya interpretado. update() lee esto, no el teclado.
+// Lo que el jugador quiere hacer en este frame, ya interpretado. update() lee esto
 interface Input {
   move: number; // -1 izquierda, 0 quieto, +1 derecha
   tilt: number; // -1 baja el tubo, 0 quieto, +1 lo sube
@@ -214,7 +195,7 @@ function processInput(): void {
   input.fire = keysPressed.has('Space');
   input.reset = keysPressed.has('KeyR');
   input.cyclePower = keysPressed.has('KeyF');
-  // El código de la tecla "1" es Digit1 (fila superior) o Numpad1 (teclado numérico). "Key1" no existe.
+  // El código de la tecla "1" es Digit1 (fila superior) o Numpad1 (teclado numérico).
   if (keysPressed.has('Digit1') || keysPressed.has('Numpad1')) input.selectPower = 1;
   else if (keysPressed.has('Digit2') || keysPressed.has('Numpad2')) input.selectPower = 2;
   else if (keysPressed.has('Digit3') || keysPressed.has('Numpad3')) input.selectPower = 3;
@@ -222,8 +203,7 @@ function processInput(): void {
   keysPressed.clear(); // cada pulsación cuenta una sola vez
 }
  
-// Loop phase 2, parte A: aplicar lo que pidió el jugador. Va por tiempo de frame (dt): el movimiento
-// es velocidad * dt, así que dura igual a cualquier tasa de fotogramas.
+// Loop phase 2, parte A: actualiza el estado de la simulación según lo que el jugador quiere hacer.
 function applyInput(dt: number): void {
   if (input.reset) {
     resetGame();
@@ -232,8 +212,7 @@ function applyInput(dt: number): void {
   if (input.selectPower !== null) state.powerLevel = input.selectPower;
   if (input.cyclePower) state.powerLevel = ((state.powerLevel % 3) + 1) as PowerLevel; // 1 -> 2 -> 3 -> 1
  
-  // Disparo: solo si no hay otra bala en el aire. Se atiende antes de mover la torreta para que la bala
-  // salga exactamente de donde el jugador la veía reposar.
+  // Disparo: solo si no hay otra bala en el aire.
   if (input.fire && state.flight === null) {
     state.flight = createFlight(state.turretX, state.elevationDeg, state.powerLevel);
   }
@@ -247,9 +226,6 @@ function applyInput(dt: number): void {
 }
  
 // Loop phase 2, parte B: simulación del proyectil con paso de tiempo FIJO.
-// La bala siempre avanza en múltiplos de SIM_STEP, sin importar cuánto dure cada frame. A 30 FPS se
-// ejecutan ~4 pasos por frame y a 144 FPS, ~0.8: la secuencia de instantes y de colisiones es la misma,
-// por eso un disparo dura lo mismo y cae en el mismo lugar. El resto del dt queda en el acumulador.
 let accumulator = 0;
 const ballPosition: Vec3 = [0, 0, 0];
  
@@ -273,19 +249,6 @@ function stepProjectile(): void {
 }
  
 // Loop phase 2, parte C: matrices de modelo (y colores dinámicos) calculadas desde el estado.
-//
-// Jerarquía de la torreta (padre -> hijos):
-//   base  (traslación a turretX, sobre el suelo)
-//   |- body   (cuerpo)
-//   |- bars   (indicador de fuerza, pegado a la cara frontal del cuerpo)
-//   `- pivot  (base + altura del pivote + rotación de elevación)
-//       |- dome    (cúpula)
-//       |- tube    (cañón)
-//       `- bullet  (proyectil, solo cuando está en reposo)
-// Como dome, tube y bullet cuelgan del mismo pivot, al cambiar la elevación se mueven como una sola pieza,
-// y la bala en reposo acompaña al cañón sin cálculos extra. En vuelo, la bala usa su posición en el mundo.
-//
-// gl-matrix postmultiplica: translate y luego scale da M = T * S, es decir, escala primero y traslada después.
 const base = mat4.create();
 const pivot = mat4.create();
  
@@ -293,11 +256,11 @@ function updateSceneTransforms(scene: Scene): void {
   const parts = scene.turret;
   mat4.fromTranslation(base, [state.turretX, GROUND_Y, TURRET_Z]);
  
-  // Cuerpo: apoyado en el suelo (su centro está a medio alto sobre la base).
+  // Cuerpo: apoyado en el suelo.
   mat4.translate(parts.body.modelMatrix, base, [0, BODY_SIZE[1] / 2, 0]);
   mat4.scale(parts.body.modelMatrix, parts.body.modelMatrix, BODY_SIZE);
  
-  // Indicador de fuerza: el nivel n enciende las n barras inferiores (la barra 0 siempre queda encendida).
+  // Indicador de fuerza: el nivel n enciende las n barras inferiores.
   parts.bars.forEach((bar, i) => {
     const y = BAR_FIRST_Y + i * (BAR_SIZE[1] + BAR_GAP);
     const z = BODY_SIZE[2] / 2 + BAR_SIZE[2] / 2; // apoyada sobre la cara +Z, la que mira a la cámara
@@ -306,7 +269,7 @@ function updateSceneTransforms(scene: Scene): void {
     bar.color = COLORS[i < state.powerLevel ? COLOR.BAR_ON : COLOR.BAR_OFF];
   });
  
-  // Pivote del cañón. rotateX(+e) lleva el eje -Z del cilindro a (0, sin e, -cos e): e = 0 horizontal, e = 90° vertical.
+  // Pivote del cañón.
   mat4.translate(pivot, base, [0, PIVOT_HEIGHT, 0]);
   mat4.rotateX(pivot, pivot, state.elevationDeg * DEG_TO_RAD);
  
@@ -318,7 +281,7 @@ function updateSceneTransforms(scene: Scene): void {
     flightPosition(state.flight, ballPosition);
     mat4.fromTranslation(parts.bullet.modelMatrix, ballPosition);
   } else {
-    // En reposo: justo después de la boca del tubo (su centro a un radio de la punta).
+    // En reposo: justo después de la boca del tubo.
     mat4.translate(parts.bullet.modelMatrix, pivot, [0, 0, -(TUBE_LENGTH + BULLET_RADIUS)]);
   }
   mat4.scale(parts.bullet.modelMatrix, parts.bullet.modelMatrix, [BULLET_RADIUS, BULLET_RADIUS, BULLET_RADIUS]);
@@ -343,13 +306,12 @@ function updateSceneTransforms(scene: Scene): void {
     }
   }
 
-  // Un objetivo alcanzado deja de dibujarse (render lo salta).
+  // Un objetivo alcanzado deja de dibujarse.
   scene.targets.forEach((target, i) => {
     target.visible = state.targetsAlive[i];
   });
 }
  
-// Loop phase 2.
 function update(dt: number, scene: Scene): void {
   applyInput(dt);
   accumulator += dt;
@@ -360,9 +322,7 @@ function update(dt: number, scene: Scene): void {
   updateSceneTransforms(scene);
 }
  
-// Loop phase 3. Draw the current state. render reads the state and never changes it.
-// setMaterial runs every frame, so FF re-uploads the material each frame. That costs a few
-// uniforms and keeps render simple. Exercise: set the material only when the color changes.
+// Loop phase 3. Renderizado de la escena según las matrices de modelo calculadas en update().
 const normalMatrix = mat3.create();
  
 function render(gl: WebGL2RenderingContext, ff: FF, objects: SceneObject[]): void {

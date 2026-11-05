@@ -1,5 +1,5 @@
-// Genera los datos de una esfera con posiciones y normales interleaveadas: x, y, z, nx, ny, nz.
-// Los triángulos quedan en sentido antihorario visto desde afuera (requisito de CULL_FACE).
+// Genera los datos de una esfera con posiciones y normales: x, y, z, nx, ny, nz.
+// Los triángulos quedan en sentido antihorario visto desde afuera
 // Se usa con radius = 1 y se dimensiona con scale en la matriz de modelo.
 export function createSphereData(radius: number, rings: number, sectors: number) {
   const vertices: number[] = [];
@@ -33,6 +33,7 @@ export function createSphereData(radius: number, rings: number, sectors: number)
       const first = r * (sectors + 1) + s;
       const second = first + sectors + 1;
  
+      // Antihorario visto desde afuera 
       indices.push(first, first + 1, second);
       indices.push(second, first + 1, second + 1);
     }
